@@ -9,7 +9,7 @@ You have created a type "Device" and inserted a link of type "Device" with objec
   name: 'MyName'
 }
 ```
-Convert link that will point to the link above will create type `MyName` with from and to `Device` inside package which contains `Device` type
+Convert link that will point to the link above will create type `Name` with from and to `Device` inside package which contains `Device` type
 ## How are handled different types of fields?
 String,Number,Object values are converted links are loop-links (links that points to the same link by from and to)
 Boolean values are converted to links which points to `Boolean` (`True` or `False`) from the `@freephoenix888/boolean` package
