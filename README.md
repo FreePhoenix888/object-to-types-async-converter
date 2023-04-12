@@ -1,5 +1,18 @@
 # object-to-types-async-converter
 [NPM](https://www.npmjs.com/package/@freephoenix888/object-to-types-async-converter)
+# About
+This package creates types according to a link with object you will point to by using `Convert` link from this package.
+For example:
+You have created a type "Device" and inserted a link of type "Device" with object value
+```
+{
+  name: 'MyName'
+}
+```
+Convert link that will point to the link above will create type `MyName` with from and to `Device` inside package which contains `Device` type
+## How are handled different types of fields?
+String,Number,Object values are converted links are loop-links (links that points to the same link by from and to)
+Boolean values are converted to links which points to `Boolean` (`True` or `False`) from the `@freephoenix888/boolean` package
 # How to use?
 1. Install package
 2. Add type to your package and value link which tells that your type will have object value type
@@ -91,3 +104,5 @@ await deep.serial({
   ]
 })
 ```
+5. Enable promises in deepcase settings to see result (Rejected or Resolved)
+6. Look at your package to see new types 
