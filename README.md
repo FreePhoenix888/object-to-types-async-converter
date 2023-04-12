@@ -115,11 +115,13 @@ await deep.serial({
       type: 'delete',
       exp: {
         up: {
-          tree_id: {_eq: await deep.id("@deep-foundation/core", "containTree")},
+          tree_id: { _eq: await deep.id("@deep-foundation/core", "containTree") },
           parent: {
             type_id: { _id: ["@deep-foundation/core", "Contain"] },
-            to: ,
-            from_id: ,
+            to: {
+              type_id: await deep.id("@freephoenix888/object-to-types-async-converter", "Convert")
+            },
+            from_id: deep.linkId,
           }
         }
       }
