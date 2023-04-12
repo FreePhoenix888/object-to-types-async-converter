@@ -106,3 +106,24 @@ await deep.serial({
 ```
 5. Enable promises in deepcase settings to see result (Rejected or Resolved)
 6. Look at your package to see new types 
+7. Delete Convert links if you want
+```ts
+await deep.serial({
+  operations: [
+    {
+      table: 'links',
+      type: 'delete',
+      exp: {
+        up: {
+          tree_id: {_eq: await deep.id("@deep-foundation/core", "containTree")},
+          parent: {
+            type_id: { _id: ["@deep-foundation/core", "Contain"] },
+            to: ,
+            from_id: ,
+          }
+        }
+      }
+    }
+  ]
+})
+```
