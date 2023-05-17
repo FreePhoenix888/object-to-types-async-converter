@@ -14,8 +14,25 @@ Convert link that will point to the link above will create type `Name` with from
 String,Number,Object values are converted links are loop-links (links that points to the same link by from and to)
 Boolean values are converted to links which points to `Boolean` (`True` or `False`) from the `@freephoenix888/boolean` package
 # How to use?
-1. Install package
-2. Add type to your package and value link which tells that your type will have object value type
+- Give permissions
+```ts
+const joinTypeLinkId = await deep.id("@deep-foundation/core", "Join");
+const packageLinkId = await deep.id("@freephoenix888/object-to-types-async-converter");
+await deep.insert([
+  {
+    type_id: joinTypeLinkId,
+    from_id: packageLinkId,
+    to_id: await deep.id('deep', 'users', 'packages'),
+  },
+  {
+    type_id: joinTypeLinkId,
+    from_id: packageLinkId,
+    to_id: await deep.id('deep', 'admin'),
+  },
+])
+```
+- Install package
+- Add type to your package and value link which tells that your type will have object value type
 ```ts
 const containTypeLinkId = await deep.id("@deep-foundation/core", "Contain");
 const valueTypeLinkId = await deep.id("@deep-foundation/core", "Value");
@@ -78,8 +95,8 @@ await deep.serial({
   ]
 })
 ```
-3. Insert a link of your type
-4. Insert a link of type `Convert` from this package that points to a link created in the previous step (from of convert link does not matter)
+- Insert a link of your type
+- Insert a link of type `Convert` from this package that points to a link created in the previous step (from of convert link does not matter)
 ```ts
 const linkWithObjectLinkId = ;
 await deep.serial({
@@ -104,9 +121,9 @@ await deep.serial({
   ]
 })
 ```
-5. Enable promises in deepcase settings to see result (Rejected or Resolved)
-6. Look at your package to see new types 
-7. Delete Convert links if you want
+- Enable promises in deepcase settings to see result (Rejected or Resolved)
+- Look at your package to see new types 
+- Delete Convert links if you want
 ```ts
 await deep.serial({
   operations: [
