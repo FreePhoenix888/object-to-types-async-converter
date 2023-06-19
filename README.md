@@ -90,8 +90,10 @@ await deep.serial({
   ]
 })
 ```
-- Insert a link of your type
-- Insert a link of type `Convert` from this package that points to a link created in the previous step (from of convert link does not matter)
+- Insert a link of your type with object value
+- Insert a link of type Config
+Note that config object value can contain property `addParentPropertyNameToChildName` which is of type boolean
+- Insert a link of type `Convert` from link of type `Config` to a link with object value
 ```ts
 const linkWithObjectLinkId = ;
 await deep.serial({
