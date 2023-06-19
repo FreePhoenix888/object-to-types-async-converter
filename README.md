@@ -22,12 +22,7 @@ await deep.insert([
   {
     type_id: joinTypeLinkId,
     from_id: packageLinkId,
-    to_id: await deep.id('deep', 'users', 'packages'),
-  },
-  {
-    type_id: joinTypeLinkId,
-    from_id: packageLinkId,
-    to_id: await deep.id('deep', 'admin'),
+    to_id: deep.linkId,
   },
 ])
 ```
