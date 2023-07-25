@@ -1,7 +1,7 @@
 # object-to-types-async-converter
 [NPM](https://www.npmjs.com/package/@freephoenix888/object-to-types-async-converter)
 # About
-This package creates types according to a link with object you will point to by using `Convert` link from this package.
+Creates types based on object value, also creates tree for them
 For example:
 You have created a type "Device" and inserted a link of type "Device" with object value
 ```
