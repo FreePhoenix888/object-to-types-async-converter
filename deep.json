@@ -1,0 +1,129 @@
+{
+  "package": {
+    "name": "@freephoenix888/object-to-types-async-converter",
+    "version": "1.1.0"
+  },
+  "data": [
+    {
+      "package": {
+        "dependencyId": 0,
+        "containValue": "Type"
+      },
+      "id": 1
+    },
+    {
+      "package": {
+        "dependencyId": 1,
+        "containValue": "Boolean"
+      },
+      "id": 2
+    },
+    {
+      "package": {
+        "dependencyId": 0,
+        "containValue": "SyncTextFile"
+      },
+      "id": 3
+    },
+    {
+      "package": {
+        "dependencyId": 0,
+        "containValue": "Handler"
+      },
+      "id": 4
+    },
+    {
+      "package": {
+        "dependencyId": 0,
+        "containValue": "dockerSupportsJs"
+      },
+      "id": 5
+    },
+    {
+      "package": {
+        "dependencyId": 0,
+        "containValue": "Value"
+      },
+      "id": 6
+    },
+    {
+      "package": {
+        "dependencyId": 0,
+        "containValue": "Object"
+      },
+      "id": 7
+    },
+    {
+      "package": {
+        "dependencyId": 0,
+        "containValue": "Any"
+      },
+      "id": 8
+    },
+    {
+      "package": {
+        "dependencyId": 0,
+        "containValue": "HandleInsert"
+      },
+      "id": 9
+    },
+    {
+      "id": "dependency@freephoenix888/boolean",
+      "type": 1,
+      "from": 2,
+      "to": 2
+    },
+    {
+      "id": "insertHandlerCode",
+      "type": 3,
+      "value": {
+        "value": "async ({ deep, data: { newLink: convertLink } , require}) => {\r\n  const containTypeLinkId = await deep.id(\"@deep-foundation/core\", \"Contain\");\r\n  const typeTypeLinkId = await deep.id(\"@deep-foundation/core\", \"Type\");\r\n  const valueTypeLinkId = await deep.id(\"@deep-foundation/core\", \"Value\");\r\n  const booleanTypeLinkId = await deep.id(\"@freephoenix888/boolean\", \"Boolean\");\r\n  const treeIncludeFromCurrentTypeLinkId = await deep.id(\"@deep-foundation/core\", \"TreeIncludeFromCurrent\");\r\n  const {format: prettyFormat} = require('pretty-format');\r\n  await updateMinilinks();\r\n\r\n  const config = await getConfig();\r\n\r\n  const {\r\n    data: [linkWithObjectValue],\r\n  } = await deep.select({\r\n    id: convertLink.to_id,\r\n  });\r\n  if (!linkWithObjectValue.value?.value) {\r\n    throw new Error(`Link ##${linkWithObjectValue.id} does not have value`);\r\n  }\r\n  if (Object.keys(linkWithObjectValue.value.value).length === 0) {\r\n    throw new Error(`Object value of ##${linkWithObjectValue.id} is empty`);\r\n  }\r\n  const obj = linkWithObjectValue.value.value;\r\n  console.log({obj: prettyFormat(obj)})\r\n  const objKeysCount = countKeys(obj);\r\n  const reservedLinkIds = await deep.reserve(objKeysCount * \r\n    (\r\n      1 + // Type\r\n      1 + // Contain for type\r\n      1 + // Value\r\n      1 + // Contain for value\r\n      1 + // TreeIncludeFromCurrent\r\n      1 // Contain for TreeIncludeFromCurrent\r\n    )\r\n    +\r\n    (\r\n      1 + // Tree\r\n      1 // Contain for Tree\r\n    )\r\n    );\r\n  const containerLinkOfLinkWithObjectValue =\r\n    await getContainerLinkOfLinkWithObjectValue();\r\n  const nameOfTypeOfLinkWithObjectValue = await getNameOfTypeOfLinkWithObjectValue({linkWithObjectValue, containTypeLinkId});\r\n  const serialOperations = await getTypesForObjectSerialOperations({\r\n    parentPropertyName: undefined,\r\n    parentLinkId: linkWithObjectValue.type_id,\r\n    reservedLinkIds,\r\n    containerLinkId: containerLinkOfLinkWithObjectValue.id,\r\n    obj: obj,\r\n    nameOfTypeOfLinkWithObjectValue\r\n  });\r\n  console.log({serialOperations: prettyFormat(serialOperations)});\r\n\r\n  const serialResult = await deep.serial({\r\n    operations: serialOperations,\r\n  });\r\n\r\n  return serialResult;\r\n\r\n  async function updateMinilinks() {\r\n    const devicePackageSelectData = {\r\n      type_id: {\r\n        _id: [\"@deep-foundation/core\", \"Package\"],\r\n      },\r\n      string: {\r\n        value: \"@deep-foundation/core\",\r\n      },\r\n    };\r\n\r\n    const containSelectData = {\r\n      from: devicePackageSelectData,\r\n      type_id: containTypeLinkId,\r\n      string: {\r\n        value: {\r\n          _in: [\"String\", \"Number\", \"Object\"],\r\n        },\r\n      },\r\n    };\r\n\r\n    const { data: containLinks } = await deep.select(containSelectData, {\r\n      returning: `\r\n          ${deep.selectReturning}\r\n          from {\r\n            ${deep.selectReturning}\r\n          }\r\n          to {\r\n           ${deep.selectReturning}\r\n          }\r\n          `,\r\n    });\r\n    deep.minilinks.apply(\r\n      containLinks\r\n        .map((containLink) => [containLink.from, containLink, containLink.to])\r\n        .flat()\r\n    );\r\n  }\r\n\r\n  async function getTypeInsertSerialOperations(param) {\r\n    const {\r\n      parentLinkId,\r\n      typeLinkId,\r\n      containerLinkId,\r\n      typeName,\r\n      typeOfValue,\r\n      valueLinkId,\r\n      valueContainLinkId,\r\n      typeContainLinkId,\r\n      treeIncludeFromCurrentLinkId,\r\n      containForTreeIncludeFromCurrentLinkId,\r\n      treeLinkId,\r\n    } = param;\r\n    const serialOperations = [];\r\n    const typeInsertSerialOperation = {\r\n      table: \"links\",\r\n      type: \"insert\",\r\n      objects: [\r\n        {\r\n          id: typeLinkId,\r\n          type_id: typeTypeLinkId,\r\n          from_id: parentLinkId,\r\n          to_id: typeOfValue === \"boolean\" ? booleanTypeLinkId : parentLinkId,\r\n        },\r\n      ],\r\n    };\r\n    serialOperations.push(typeInsertSerialOperation);\r\n    let typeContainInsertSerialOperation = {\r\n      type: \"insert\",\r\n      table: \"links\",\r\n      objects: {\r\n        id: typeContainLinkId,\r\n        type_id: containTypeLinkId,\r\n        from_id: containerLinkId,\r\n        to_id: typeLinkId,\r\n      },\r\n    };\r\n    serialOperations.push(typeContainInsertSerialOperation);\r\n    let valueOftypeContainInsertSerialOperation = {\r\n      type: \"insert\",\r\n      table: \"strings\",\r\n      objects: {\r\n        link_id: typeContainLinkId,\r\n        value: typeName,\r\n      },\r\n    };\r\n    serialOperations.push(valueOftypeContainInsertSerialOperation);\r\n    const treeIncludeFromCurrentInsertSerialOperation = {\r\n      table: \"links\",\r\n      type: \"insert\",\r\n      objects: {\r\n        id: treeIncludeFromCurrentLinkId,\r\n        type_id: treeIncludeFromCurrentTypeLinkId,\r\n        from_id: treeLinkId,\r\n        to_id: typeLinkId,\r\n      },\r\n    };\r\n    serialOperations.push(treeIncludeFromCurrentInsertSerialOperation);\r\n    let containForTreeInsertSerialOperation = {\r\n      type: \"insert\",\r\n      table: \"links\",\r\n      objects: {\r\n        id: containForTreeIncludeFromCurrentLinkId,\r\n        type_id: containTypeLinkId,\r\n        from_id: containerLinkId,\r\n        to_id: treeIncludeFromCurrentLinkId,\r\n      },\r\n    };\r\n    serialOperations.push(containForTreeInsertSerialOperation);\r\n    let valueForContainForTreeInsertSerialOperation = {\r\n      type: \"insert\",\r\n      table: \"strings\",\r\n      objects: {\r\n        link_id: containForTreeIncludeFromCurrentLinkId,\r\n        value: `TreeIncludeFromCurrent${typeName}`,\r\n      },\r\n    };\r\n    serialOperations.push(valueForContainForTreeInsertSerialOperation);\r\n    if (typeOfValue !== \"undefined\" && typeOfValue !== \"boolean\") {\r\n  \r\n      let typeOfValueInsertSerialOperation = {\r\n        type: \"insert\",\r\n        table: \"links\",\r\n        objects: {\r\n          id: valueLinkId,\r\n          from_id: typeLinkId,\r\n          type_id: valueTypeLinkId,\r\n          to_id: await deep.id(\r\n            \"@deep-foundation/core\",\r\n            typeOfValue.slice(0, 1).toUpperCase() + typeOfValue.slice(1)\r\n          ),\r\n        },\r\n      };\r\n      serialOperations.push(typeOfValueInsertSerialOperation);\r\n      let containToTypeOfValueInsertSerialOperation = {\r\n        type: \"insert\",\r\n        table: \"links\",\r\n        objects: {\r\n          id: valueContainLinkId,\r\n          type_id: containTypeLinkId,\r\n          from_id: containerLinkId,\r\n          to_id: valueLinkId,\r\n        },\r\n      };\r\n      serialOperations.push(containToTypeOfValueInsertSerialOperation);\r\n      let valueOfContainToTypeOfValueInsertSerialOperation = {\r\n        type: \"insert\",\r\n        table: \"strings\",\r\n        objects: {\r\n          link_id: valueContainLinkId,\r\n          value: `${typeName}Value`,\r\n        },\r\n      };\r\n      serialOperations.push(valueOfContainToTypeOfValueInsertSerialOperation);\r\n    }\r\n    console.log(getTypeInsertSerialOperations.name, { param: prettyFormat(param) });\r\n    console.log(getTypeInsertSerialOperations.name, { serialOperations: prettyFormat(serialOperations) });\r\n    return serialOperations;\r\n  }\r\n\r\n  async function getContainerLinkOfLinkWithObjectValue() {\r\n    const containerLinkOfLinkWithObjectValueSelectData = {\r\n      out: {\r\n        type_id: containTypeLinkId,\r\n        to_id: linkWithObjectValue.type_id,\r\n      },\r\n    };\r\n    const {\r\n      data: [containerLinkOfLinkWithObjectValue],\r\n    } = await deep.select(containerLinkOfLinkWithObjectValueSelectData);\r\n    if (!containerLinkOfLinkWithObjectValue) {\r\n      throw new Error(\r\n        `Unable to find link that contains ##${\r\n          linkWithObjectValue.type_id\r\n        } by using query ${JSON.stringify(\r\n          containerLinkOfLinkWithObjectValueSelectData\r\n        )}`\r\n      );\r\n    }\r\n    return containerLinkOfLinkWithObjectValue;\r\n  }\r\n\r\n  async function getTypesForObjectSerialOperations(param) {\r\n    const {\r\n      parentPropertyName,\r\n      parentLinkId,\r\n      reservedLinkIds,\r\n      containerLinkId,\r\n      obj,\r\n      nameOfTypeOfLinkWithObjectValue\r\n    } = param;\r\n    let serialOperations = [];\r\n    const treeTypeLinkId = await deep.id(\"@deep-foundation/core\", \"Tree\")\r\n    const treeLinkId = reservedLinkIds.pop();\r\n    const containForTreeLinkId = reservedLinkIds.pop();\r\n    const treeInsertSerialOperation = {\r\n      table: \"links\",\r\n      type: \"insert\",\r\n      objects: [\r\n        {\r\n          id: treeLinkId,\r\n          type_id: treeTypeLinkId,\r\n        },\r\n      ],\r\n    };\r\n    serialOperations.push(treeInsertSerialOperation);\r\n    let containForTreeInsertSerialOperation = {\r\n      type: \"insert\",\r\n      table: \"links\",\r\n      objects: {\r\n        id: containForTreeLinkId,\r\n        type_id: containTypeLinkId,\r\n        from_id: containerLinkId,\r\n        to_id: treeLinkId,\r\n      },\r\n    };\r\n    serialOperations.push(containForTreeInsertSerialOperation);\r\n    let valueForContainForTreeInsertSerialOperation = {\r\n      type: \"insert\",\r\n      table: \"strings\",\r\n      objects: {\r\n        link_id: containForTreeLinkId,\r\n        value: `${nameOfTypeOfLinkWithObjectValue}Tree`,\r\n      },\r\n    };\r\n    serialOperations.push(valueForContainForTreeInsertSerialOperation);\r\n    for (const [key, value] of Object.entries(obj)) {\r\n      console.log({key , value})\r\n      const typeLinkId = reservedLinkIds.pop();\r\n      if (value === undefined || value === null) continue;\r\n      if (Array.isArray(value)) {\r\n        const innerSerialOperations = await getArrayInsertSerialOperations({\r\n          containerLinkId,\r\n          key,\r\n          parentLinkId,\r\n          reservedLinkIds,\r\n          value,\r\n          treeLinkId\r\n        });\r\n        serialOperations = [...serialOperations, ...innerSerialOperations];\r\n      } else if (typeof value === \"object\") {\r\n        const innerSerialOperations = await getTypesForObjectSerialOperations({\r\n          parentPropertyName: key,\r\n          parentLinkId,\r\n          reservedLinkIds,\r\n          containerLinkId,\r\n          obj: value,\r\n          nameOfTypeOfLinkWithObjectValue\r\n        });\r\n        serialOperations = [...serialOperations, ...innerSerialOperations];\r\n      } else {\r\n        let typeName = key.slice(0, 1).toUpperCase() + key.slice(1);\r\n        if (config.addParentPropertyNameToChildName) {\r\n          if (parentPropertyName) {\r\n            const parentPropertyNameFirstLetterUppered =\r\n              parentPropertyName.slice(0, 1).toUpperCase() +\r\n              parentPropertyName.slice(1);\r\n            typeName = `${parentPropertyNameFirstLetterUppered}${typeName}`;\r\n          }\r\n        }\r\n        const typeInsertSerialOperations = await getTypeInsertSerialOperations({\r\n          parentLinkId,\r\n          typeLinkId,\r\n          containerLinkId,\r\n          typeName,\r\n          typeOfValue: typeof value,\r\n          valueContainLinkId: reservedLinkIds.pop(),\r\n          valueLinkId: reservedLinkIds.pop(),\r\n          typeContainLinkId: reservedLinkIds.pop(),\r\n          treeIncludeFromCurrentLinkId: reservedLinkIds.pop(),\r\n          containForTreeIncludeFromCurrentLinkId: reservedLinkIds.pop(),\r\n          treeLinkId\r\n        });\r\n        serialOperations = [...serialOperations, ...typeInsertSerialOperations];\r\n      }\r\n    }\r\n    console.log(getTypesForObjectSerialOperations.name, { param: prettyFormat(param) });\r\n    console.log(getTypesForObjectSerialOperations.name, { serialOperations: prettyFormat(serialOperations) });\r\n    return serialOperations;\r\n  }\r\n\r\n  function countKeys(obj) {\r\n    let count = Object.keys(obj).length;\r\n    for (const value of Object.values(obj)) {\r\n      if (!value) continue;\r\n      if (typeof value === \"object\") {\r\n        count += countKeys(value);\r\n      } else if (Array.isArray(value) && value.length > 0) {\r\n        count += countKeys(value[0]);\r\n      }\r\n    }\r\n    return count;\r\n  }\r\n\r\n  async function getConfig() {\r\n    const customConfig = (await getConfigLink()).value?.value;\r\n    return {\r\n      addParentPropertyNameToChildName:\r\n        customConfig?.addParentPropertyNameToChildName ?? false,\r\n    };\r\n  }\r\n\r\n  async function getArrayInsertSerialOperations(param) {\r\n    const { key, value, parentLinkId, containerLinkId, reservedLinkIds, treeLinkId, nameOfTypeOfLinkWithObjectValue } =\r\n      param;\r\n    let typeNameWithoutS = key.at(-1) === \"s\" ? key.slice(0, -1) : key;\r\n    typeNameWithoutS = typeNameWithoutS.slice(0, 1).toUpperCase() + typeNameWithoutS.slice(1);\r\n    let typeOfArrayElement = typeof value[0];\r\n    console.log({typeOfArrayElement})\r\n    let serialOperations = [];\r\n    if (typeOfArrayElement === \"object\") {\r\n      serialOperations = await getTypesForObjectSerialOperations({\r\n        parentPropertyName: typeNameWithoutS,\r\n        parentLinkId,\r\n        reservedLinkIds,\r\n        containerLinkId,\r\n        obj: value[0],\r\n        nameOfTypeOfLinkWithObjectValue\r\n      });\r\n    } else {\r\n      serialOperations = await getTypeInsertSerialOperations({\r\n        parentLinkId,\r\n        typeLinkId: reservedLinkIds.pop(),\r\n        containerLinkId,\r\n        valueContainLinkId: reservedLinkIds.pop(),\r\n        valueLinkId: reservedLinkIds.pop(),\r\n        typeOfValue: typeOfArrayElement,\r\n        typeName: typeNameWithoutS,\r\n        typeContainLinkId: reservedLinkIds.pop(),\r\n        treeIncludeFromCurrentLinkId: reservedLinkIds.pop(),\r\n        containForTreeIncludeFromCurrentLinkId: reservedLinkIds.pop(),\r\n        treeLinkId\r\n      });\r\n    }\r\n    console.log(getArrayInsertSerialOperations.name, { param: prettyFormat(param) });\r\n    console.log(getArrayInsertSerialOperations.name, { serialOperations: prettyFormat(serialOperations )});\r\n    return serialOperations;\r\n  }\r\n\r\n  async function getConfigLink() {\r\n    const selectData = {\r\n        id: convertLink.from_id,\r\n    };\r\n    const {\r\n      data: [link],\r\n    } = await deep.select(selectData);\r\n    if (!link) {\r\n      throw new Error(\r\n        `Unable to find link that contains ##${\r\n          linkWithObjectValue.type_id\r\n        } by using query ${JSON.stringify(\r\n         selectData\r\n        )}`\r\n      );\r\n    }\r\n    return link;\r\n  }\r\n\r\n  async function getNameOfTypeOfLinkWithObjectValue({linkWithObjectValue, containTypeLinkId}){\r\n    const selectData = {\r\n      type_id: containTypeLinkId,\r\n      to_id: linkWithObjectValue.type_id\r\n    }\r\n    const {data: [containLink]} = await deep.select(selectData)\r\n    if (!containLink) {\r\n      throw new Error(`Select with data ${JSON.stringify(selectData)} returned no data`)\r\n    }\r\n    const name = containLink.value?.value;\r\n    if(!name) {\r\n      throw new Error(`${containLink.id} must have value`)\r\n    }\r\n    return name\r\n  }\r\n};"
+      }
+    },
+    {
+      "id": "convertInsertHandler",
+      "type": 4,
+      "from": 5,
+      "to": "insertHandlerCode"
+    },
+    {
+      "id": "Config",
+      "type": 1
+    },
+    {
+      "id": "configValue",
+      "type": 6,
+      "from": "Config",
+      "to": 7
+    },
+    {
+      "id": "Convert",
+      "type": 1,
+      "from": "Config",
+      "to": 8
+    },
+    {
+      "id": "handleConvertInsert",
+      "type": 9,
+      "from": "Convert",
+      "to": "convertInsertHandler"
+    },
+    {
+      "id": "convertValue",
+      "type": 6,
+      "from": "Convert",
+      "to": 7
+    }
+  ],
+  "errors": [],
+  "dependencies": [
+    {
+      "name": "@deep-foundation/core",
+      "version": "0.0.2"
+    },
+    {
+      "name": "@freephoenix888/boolean",
+      "version": "0.0.1"
+    }
+  ]
+}
